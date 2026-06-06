@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stackly — Certification & Examination System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0A0A0A;--bg2:#111111;--bg3:#1A1A1A;--bg4:#222222;--bdr:#2A2A2A;--bdr2:#333;
+  --txt:#F0F0F0;--mut:#888;--mut2:#444;
+  --pri:#C8FF00;--pri-dim:rgba(200,255,0,.07);
+  --acc:#00E5FF;--suc:#00C896;--war:#FFB800;--dan:#FF4444;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+a{text-decoration:none;color:inherit}
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--bdr);height:54px;padding:0 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--pri);letter-spacing:-1px}
+.logo span{color:var(--txt)}
+.topbar-title{font-size:11px;color:var(--mut);flex:1;letter-spacing:.02em}
+.tbadge{font-size:10px;padding:3px 9px;border-radius:3px;background:var(--bg3);color:var(--mut);border:1px solid var(--bdr)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--suc);box-shadow:0 0 6px var(--suc)}
+/* LAYOUT */
+.main{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 54px)}
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1px solid var(--bdr);padding:16px 0;display:flex;flex-direction:column}
+.nav-sect{font-size:9px;font-weight:700;color:var(--mut2);text-transform:uppercase;letter-spacing:.12em;padding:0 14px;margin:14px 0 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:12px;color:var(--mut);border-left:2px solid transparent;cursor:pointer;transition:.15s}
+.nav-item svg{width:14px;height:14px;flex-shrink:0}
+.nav-item:hover{color:var(--txt);background:var(--bg3)}
+.nav-item.active{color:var(--pri);background:var(--pri-dim);border-left-color:var(--pri);font-weight:500}
+.nav-item.prod-link{font-size:11px;padding:6px 14px 6px 22px}
+.nav-item.prod-link.current{color:var(--pri);font-weight:600}
+/* CONTENT */
+.content{padding:24px 28px;overflow-y:auto}
+.pg-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.pg-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-1px;line-height:1}
+.pg-title span{color:var(--pri)}
+.pg-sub{font-size:11px;color:var(--mut);margin-top:5px}
+/* FILTERS */
+.fbar{display:flex;gap:6px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.flab{font-size:10px;color:var(--mut2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.fbtn{font-size:11px;padding:5px 12px;border-radius:4px;border:1px solid var(--bdr);background:transparent;color:var(--mut);cursor:pointer;font-family:'Inter',sans-serif;transition:.15s}
+.fbtn:hover{border-color:var(--bdr2);color:var(--txt)}
+.fbtn.active{background:var(--pri);color:#000;border-color:var(--pri);font-weight:600}
+.fsep{width:1px;height:16px;background:var(--bdr);margin:0 4px}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:18px;position:relative;overflow:hidden;transition:border-color .2s}
+.kpi:hover{border-color:var(--bdr2)}
+.kpi-bar{position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.c0 .kpi-bar{background:var(--pri)} .kpi.c1 .kpi-bar{background:var(--acc)}
+.kpi.c2 .kpi-bar{background:var(--suc)} .kpi.c3 .kpi-bar{background:var(--war)}
+.kpi-ic{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.kpi.c0 .kpi-ic{background:rgba(200,255,0,.08)} .kpi.c1 .kpi-ic{background:rgba(0,229,255,.08)}
+.kpi.c2 .kpi-ic{background:rgba(0,200,150,.08)} .kpi.c3 .kpi-ic{background:rgba(255,184,0,.08)}
+.kpi.c0 .kpi-ic svg{stroke:var(--pri)} .kpi.c1 .kpi-ic svg{stroke:var(--acc)}
+.kpi.c2 .kpi-ic svg{stroke:var(--suc)} .kpi.c3 .kpi-ic svg{stroke:var(--war)}
+.kpi-ic svg{width:15px;height:15px}
+.kpi-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.kpi-lbl{font-size:11px;color:var(--mut);margin-top:5px}
+.kpi-trend{font-size:11px;margin-top:9px;font-weight:500;display:flex;align-items:center;gap:3px}
+.kpi-trend.up{color:var(--suc)} .kpi-trend.dn{color:var(--dan)}
+/* CHARTS */
+.charts-row{display:grid;gap:12px;margin-bottom:12px}
+.cr2{grid-template-columns:3fr 2fr}
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:18px}
+.c-title{font-size:13px;font-weight:600;letter-spacing:-.2px;margin-bottom:3px}
+.c-sub{font-size:11px;color:var(--mut);margin-bottom:14px}
+/* BAR */
+.bchart{display:flex;flex-direction:column;gap:8px}
+.brow{display:flex;align-items:center;gap:10px}
+.blbl{font-size:11px;color:var(--mut);width:120px;text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btrack{flex:1;height:20px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.bfill{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#000;transition:width .5s ease}
+/* DONUT */
+.dwrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.dleg{width:100%;display:flex;flex-direction:column;gap:7px}
+.drow{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.dleft{display:flex;align-items:center;gap:7px;color:var(--mut)}
+.ddot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.dval{font-weight:700;font-size:13px}
+/* TABLE */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:9px 13px;font-size:10px;font-weight:600;color:var(--mut2);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--bdr);background:var(--bg)}
+td{padding:9px 13px;border-bottom:1px solid var(--bdr);color:var(--txt)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.04em}
+.pg{background:rgba(0,200,150,.1);color:var(--suc);border:1px solid rgba(0,200,150,.2)}
+.pa{background:rgba(255,184,0,.1);color:var(--war);border:1px solid rgba(255,184,0,.2)}
+.pr{background:rgba(255,68,68,.1);color:var(--dan);border:1px solid rgba(255,68,68,.2)}
+.pb{background:var(--pri-dim);color:var(--pri);border:1px solid rgba(200,255,0,.2)}
+/* INSIGHT */
+.insight{background:var(--bg3);border:1px solid var(--bdr);border-left:3px solid var(--pri);border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
+.ins-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.ins-title{font-size:11px;font-weight:700;color:var(--pri);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.ins-text{font-size:12px;color:var(--mut);line-height:1.6}
+.ins-text strong{color:var(--txt)}
+/* FOOTER */
+.footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:12px 24px;font-size:11px;color:var(--mut2);display:flex;justify-content:space-between;align-items:center}
+.fbrand{font-weight:700;color:var(--pri)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">S<span>tackly</span></div>
+  <div class="topbar-title">AI Education & Workforce Development Platform</div>
+  <div class="live-dot"></div><div class="tbadge">Live</div>
+  <div class="tbadge">Product 8 / 10</div>
+  <div class="tbadge" style="color:var(--mut2);font-size:9px">Prototype — Simulated data</div>
+</div>
+<div class="main">
+  <div class="sidebar"><div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Overview</span></div><div class="nav-item "><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg><span>Analytics</span></div><div class="nav-item "><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Users</span></div><div class="nav-item "><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Reports</span></div><div class="nav-item "><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Settings</span></div><div class="nav-sect">All Products</div><a href="Product_1_LMS_Dashboard.html" class="nav-item prod-link">1. Learning Mgmt</a><a href="Product_2_Skill_Assessment_Dashboard.html" class="nav-item prod-link">2. AI Skill Assessment</a><a href="Product_3_Virtual_Classroom_Dashboard.html" class="nav-item prod-link">3. Virtual Classroom</a><a href="Product_4_Internship_Dashboard.html" class="nav-item prod-link">4. Internship Mgmt</a><a href="Product_5_Placement_Dashboard.html" class="nav-item prod-link">5. Placement & Recruitmen</a><a href="Product_6_Resume_Builder_Dashboard.html" class="nav-item prod-link">6. AI Resume Builder & Sc</a><a href="Product_7_Employee_Training_Dashboard.html" class="nav-item prod-link">7. Employee Training & Up</a><a href="Product_8_Certification_Dashboard.html" class="nav-item prod-link current">8. Certification & Examin</a><a href="Product_9_Workforce_Analytics_Dashboard.html" class="nav-item prod-link">9. Workforce Analytics</a><a href="Product_10_Employer_Hiring_Portal_Dashboard.html" class="nav-item prod-link">10. Employer Hiring Portal</a></div>
+  <div class="content">
+    <div class="pg-head">
+      <div><div class="pg-title">Stackly — <span>Certification & Examination System</span></div><div class="pg-sub">Proctored exams, digital badges, pass tracking, and certificate verification</div></div>
+      <div class="fbar">
+        <span class="flab">View:</span>
+        <button class="fbtn active" onclick="fa(this,'all')">All time</button>
+        <div class="fsep"></div>
+        <button class="fbtn" onclick="fa(this,'q1')">Q1</button>
+        <button class="fbtn" onclick="fa(this,'q2')">Q2</button>
+        <button class="fbtn" onclick="fa(this,'q3')">Q3</button>
+        <button class="fbtn" onclick="fa(this,'q4')">Q4</button>
+      </div>
+    </div>
+    <div class="kpi-grid"><div class="kpi c0"><div class="kpi-bar"></div><div class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="kpi-val">4,102</div><div class="kpi-lbl">Exams taken</div><div class="kpi-trend up">↑ ++24% vs last period</div></div><div class="kpi c2"><div class="kpi-bar"></div><div class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div><div class="kpi-val">2,914</div><div class="kpi-lbl">Certs issued</div><div class="kpi-trend up">↑ ++19% vs last period</div></div><div class="kpi c1"><div class="kpi-bar"></div><div class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="kpi-val">71%</div><div class="kpi-lbl">Pass rate</div><div class="kpi-trend up">↑ ++3% vs last period</div></div><div class="kpi c3"><div class="kpi-bar"></div><div class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="kpi-val">77.8</div><div class="kpi-lbl">Avg exam score</div><div class="kpi-trend up">↑ ++1.2 vs last period</div></div></div>
+    <div class="insight"><div class="ins-icon">&#x1F4A1;</div><div><div class="ins-title">AI Insight</div><div class="ins-text"><strong>Python Certification</strong> is the most-taken exam with <strong>810 candidates</strong>. Pass rate improved <strong>+3% this quarter</strong>. Online proctored mode dominates at <strong>58%</strong> — expand capacity to reduce scheduling delays.</div></div></div>
+    <div class="charts-row cr2"><div class="card"><div class="c-title">Certifications by type</div><div class="c-sub">Volume per program</div><div class="bchart"><div class="brow"><div class="blbl">Python Certified</div><div class="btrack"><div class="bfill" style="width:100%;background:#C8FF00">810</div></div></div><div class="brow"><div class="blbl">Cloud Practitioner</div><div class="btrack"><div class="bfill" style="width:86%;background:#00E5FF">694</div></div></div><div class="brow"><div class="blbl">Data Science Pro</div><div class="btrack"><div class="bfill" style="width:71%;background:#00C896">578</div></div></div><div class="brow"><div class="blbl">ML Associate</div><div class="btrack"><div class="bfill" style="width:61%;background:#FFB800">492</div></div></div><div class="brow"><div class="blbl">SQL Expert</div><div class="btrack"><div class="bfill" style="width:52%;background:#B4A0FF">421</div></div></div><div class="brow"><div class="blbl">Web Dev Cert</div><div class="btrack"><div class="bfill" style="width:38%;background:#FF6B6B">310</div></div></div></div></div><div class="card"><div class="c-title">Exam mode distribution</div><div class="c-sub">How exams are delivered</div><div class="dwrap"><svg viewBox="0 0 140 140" width="140" height="140"><path d="M70.0,14.0 A56,56 0 1 1 43.0,119.1 L54.6,98.0 A32,32 0 1 0 70.0,38.0 Z" fill="#C8FF00"/><path d="M43.0,119.1 A56,56 0 0 1 29.2,31.7 L46.7,48.1 A32,32 0 0 0 54.6,98.0 Z" fill="#00C896"/><path d="M29.2,31.7 A56,56 0 0 1 70.0,14.0 L70.0,38.0 A32,32 0 0 0 46.7,48.1 Z" fill="#FFB800"/><circle cx="70" cy="70" r="30" fill="#111"/></svg><div class="dleg"><div class="drow"><div class="dleft"><div class="ddot" style="background:#C8FF00"></div>Online proctored</div><span class="dval">58%</span></div><div class="drow"><div class="dleft"><div class="ddot" style="background:#00C896"></div>Centre based</div><span class="dval">29%</span></div><div class="drow"><div class="dleft"><div class="ddot" style="background:#FFB800"></div>Remote</div><span class="dval">13%</span></div></div></div></div></div><div class="card"><div class="c-title">Monthly exams & certs issued</div><div class="c-sub">Filter by quarter above</div><div style="height:180px"><canvas id="lc"></canvas></div></div>
+    <div class="card" style="margin-top:12px">
+      <div class="c-title">Detailed records</div>
+      <div class="c-sub">Sample data — prototype dashboard</div>
+      <div class="twrap"><table><tr><th>Candidate</th><th>Exam</th><th>Mode</th><th>Date</th><th>Score</th><th>Result</th></tr><tr><td>Karthik A.</td><td>Python Cert.</td><td>Online Proctored</td><td>2026-03-12</td><td>94/100</td><td><span class="pill pg">Pass</span></td></tr><tr><td>Latha S.</td><td>Cloud Prac.</td><td>Centre Based</td><td>2026-03-18</td><td>71/100</td><td><span class="pill pg">Pass</span></td></tr><tr><td>Murugan P.</td><td>ML Associate</td><td>Online Proctored</td><td>2026-04-02</td><td>58/100</td><td><span class="pill pr">Fail</span></td></tr><tr><td>Nalini V.</td><td>SQL Expert</td><td>Remote</td><td>2026-04-10</td><td>87/100</td><td><span class="pill pg">Pass</span></td></tr><tr><td>Oviya T.</td><td>Web Dev Cert</td><td>Online Proctored</td><td>2026-04-22</td><td>65/100</td><td><span class="pill pg">Pass</span></td></tr><tr><td>Prakash R.</td><td>Data Sci. Pro</td><td>Centre Based</td><td>2026-05-01</td><td>79/100</td><td><span class="pill pg">Pass</span></td></tr><tr><td>Queenie M.</td><td>Python Cert.</td><td>Remote</td><td>2026-05-08</td><td>91/100</td><td><span class="pill pg">Pass</span></td></tr></table></div>
+    </div>
+  </div>
+</div>
+<div class="footer">
+  <span>Stackly AI Platform &nbsp;·&nbsp; thestackly.com &nbsp;·&nbsp; info@thestackly.com &nbsp;·&nbsp; <em>Prototype dashboard with simulated data</em></span>
+  <span class="fbrand">Stackly — Certification & Examination System</span>
+</div>
+<script>
+
+function fa(b,quarter){
+  b.closest('.fbar').querySelectorAll('.fbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  if(window.filterCharts) window.filterCharts(quarter);
+}
+
+
+(function(){
+  var lbls={"all": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], "q1": ["Jan", "Feb", "Mar"], "q2": ["Apr", "May", "Jun"], "q3": ["Jul", "Aug", "Sep"], "q4": ["Oct", "Nov", "Dec"]};
+  var qdata={"all": [[210, 248, 231, 275, 261, 298, 284, 315, 302, 338, 321, 357], [149, 176, 164, 195, 185, 212, 201, 224, 214, 240, 228, 253]], "q1": [[210, 248, 231], [149, 176, 164]], "q2": [[275, 261, 298], [195, 185, 212]], "q3": [[284, 315, 302], [201, 224, 214]], "q4": [[338, 321, 357], [240, 228, 253]]};
+  var ds=[{"l": "Exams taken", "c": "#C8FF00", "f": "rgba(200,255,0,0.05)", "d": [210, 248, 231, 275, 261, 298, 284, 315, 302, 338, 321, 357]}, {"l": "Certs issued", "c": "#00C896", "f": "rgba(0,200,150,0.04)", "d": [149, 176, 164, 195, 185, 212, 201, 224, 214, 240, 228, 253]}];
+  var ch = new Chart(document.getElementById("lc"),{
+    type:"line",
+    data:{labels:lbls.all,datasets:ds.map((d,i)=>({label:d.l,data:qdata.all[i],borderColor:d.c,backgroundColor:d.f,fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:d.c,borderWidth:2}))},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#888",font:{family:"Inter",size:11}}}},scales:{x:{grid:{color:"rgba(255,255,255,0.04)"},ticks:{color:"#555",font:{family:"Inter",size:10}}},y:{grid:{color:"rgba(255,255,255,0.04)"},ticks:{color:"#555",font:{family:"Inter",size:10}}}}}
+  });
+  window.filterCharts = function(q){
+    ch.data.labels = lbls[q];
+    ch.data.datasets.forEach((d,i)=>d.data=qdata[q][i]);
+    ch.update();
+  };
+})();
+</script>
+<a href="index.html" style="position:fixed;bottom:24px;right:24px;z-index:999;background:#C8FF00;color:#000;font-family:Inter,sans-serif;font-size:12px;font-weight:700;padding:9px 16px;border-radius:6px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(200,255,0,0.25);letter-spacing:.02em;text-decoration:none">&#8592; Back to Home</a>
+</body></html>
